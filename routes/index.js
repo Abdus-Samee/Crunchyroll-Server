@@ -5,7 +5,7 @@ var repo = new Repository()
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+  res.render('index', { title: 'Express' })
 });
 
 router.post('/login', async (req, res) => {
@@ -28,6 +28,19 @@ router.post('/login', async (req, res) => {
       token: ''
     })
   }
-});
+})
 
-module.exports = router;
+router.post('/signup', async (req, res) => {
+  const email = req.body.email
+  const password = req.body.password
+
+  var ans = await repo.query('insert into person(username, password) values(:email, :password)', {
+    email: email,
+    password: password
+  })
+  console.log(ans)
+
+  //do a transaction here as described in Navicat
+})
+
+module.exports = router
