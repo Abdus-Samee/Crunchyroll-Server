@@ -2,51 +2,51 @@ var express = require('express')
 var router = express.Router()
 var oracledb = require('oracledb')
 var fs = require('fs')
+var Repository = require('../connection/query').Repository
+var repo = new Repository()
 
-//to connect to64-bit oracle client --> gives error if not connected
-if (process.platform === 'win32') {
-  try {
-    oracledb.initOracleClient({libDir: 'E:\\instantclient-basic-windows.x64-21.3.0.0.0\\instantclient_21_3'})   // note the double backslashes
-  } catch (err) {
-    console.error('Whoops!')
-    console.error(err)
-    process.exit(1)
-  }
-}
+router.get('/anime', async (req, res, next) => {
+    var ans = await repo.query('select * from anime', {})
+    console.log(ans)
+    res.send(ans.data)
+    // oracledb.getConnection({
+    //     user: "hr",
+    //     password: "hr",
+    //     connectString: "(DESCRIPTION =(ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 1521))(CONNECT_DATA =(SID= ORCL)))"
+    // }, (err, con) => {
+    //     if(err){
+    //         console.log('Cannot connect...')
+    //         console.log(err)
+    //         res.send(err)
+    //     }
+    //     else{
+    //         var q = 'select * from anime'
 
-router.get('/', (req, res, next) => {
-    oracledb.getConnection({
-        user: "hr",
-        password: "hr",
-        connectString: "(DESCRIPTION =(ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 1521))(CONNECT_DATA =(SID= ORCL)))"
-    }, (err, con) => {
-        if(err){
-            console.log('Cannot connect...')
-            console.log(err)
-            res.send(err)
-        }
-        else{
-            var q = 'select * from anime'
+    //         binds = {}
 
-            binds = {}
+    //         // For a complete list of options see the documentation.
+    //         options = {
+    //             outFormat: oracledb.OUT_FORMAT_OBJECT, // query result format
+    //         }
 
-            // For a complete list of options see the documentation.
-            options = {
-                outFormat: oracledb.OUT_FORMAT_OBJECT, // query result format
-            }
-
-            con.execute(q, binds, options, (e, a) => {
-                if(e) res.send(e)
-                else{
-                    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000')
-                    res.send(a.rows)
-                }
-            })
-        }
-    })
+    //         con.execute(q, binds, options, (e, a) => {
+    //             if(e) res.send(e)
+    //             else{
+    //                 res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000')
+    //                 res.send(a.rows)
+    //             }
+    //         })
+    //     }
+    // })
 })
 
-router.get("/video", function (req, res) {
+router.get('/manga', async (req, res, next) => {
+  var ans = await repo.query('select * from manga', {})
+  console.log(ans)
+  res.send(ans.data)
+})
+
+router.get('/video', (req, res) => {
   // Ensure there is a range given for the video
   const range = req.headers.range
   // get video stats (about 61MB)
@@ -87,6 +87,12 @@ router.get("/video", function (req, res) {
     // Stream the video chunk to the client
     videoStream.pipe(res)
   }
-});
+})
+
+router.get('/pdf', (req, res) => {
+  var data =fs.readFileSync('public/pdf/manga.pdf')
+  res.contentType("application/pdf")
+  res.send(data)
+})
 
 module.exports = router

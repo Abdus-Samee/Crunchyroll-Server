@@ -1,6 +1,16 @@
 const oracledb = require('oracledb')
 oracledb.outFormat = oracledb.OBJECT
 
+if (process.platform === 'win32') {
+    try {
+      oracledb.initOracleClient({libDir: 'E:\\instantclient-basic-windows.x64-21.3.0.0.0\\instantclient_21_3'})   // note the double backslashes
+    } catch (err) {
+      console.error('Whoops!')
+      console.error(err)
+      process.exit(1)
+    }
+}
+
 class Repository {
     constructor() {
         this.connection = undefined
