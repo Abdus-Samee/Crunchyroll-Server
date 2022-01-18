@@ -13,7 +13,7 @@ router.post('/login', async (req, res) => {
   const email = req.body.email
   const password = req.body.password
 
-  var ans = await repo.query('select * from person where username = :email and password = :password', {
+  var ans = await repo.query('select * from person where email = :email and password = :password', {
     email: email,
     password: password
   })
@@ -34,7 +34,7 @@ router.post('/signup', async (req, res) => {
   const email = req.body.email
   const password = req.body.password
 
-  var ans = await repo.query('insert into person(username, password) values(:email, :password)', {
+  var ans = await repo.query('insert into person(email, password) values(:email, :password)', {
     email: email,
     password: password
   })

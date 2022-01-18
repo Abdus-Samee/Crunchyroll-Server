@@ -36,7 +36,7 @@ router.get('/anime', async (req, res, next) => {
     //                 res.send(a.rows)
     //             }
     //         })
-    //     }
+    //     } 
     // })
 })
 
