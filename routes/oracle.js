@@ -46,6 +46,12 @@ router.get('/manga', async (req, res, next) => {
   res.send(ans.data)
 })
 
+router.get('/genres', async (req, res, next) => {
+  var ans = await repo.query('select * from genre', {})
+  console.log(ans)
+  res.send(ans.data)
+})
+
 router.get('/video', (req, res) => {
   // Ensure there is a range given for the video
   const range = req.headers.range
