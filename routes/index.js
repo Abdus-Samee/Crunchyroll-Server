@@ -34,11 +34,34 @@ router.post('/signup', async (req, res) => {
   const email = req.body.email
   const password = req.body.password
 
-  var ans = await repo.query('insert into person(email, password) values(:email, :password)', {
+  var transactionQuery =  "declare \n" +
+                          "person_id number; \n" +
+                          "begin \n" +
+                          "insert into person (email, password) values (:email, :password); \n" +
+                          "select id into person_id from person where email=(:email); \n" +
+                          "insert into member(memberid) values(person_id);" +
+                          "commit; \n" +
+                          "end;"
+  var ans = await repo.query(transactionQuery, {
     email: email,
     password: password
   })
   console.log(ans)
+
+  if(ans.success === true){
+    res.send({
+      token: 'test123'
+    })
+  }else{
+    res.send({
+      token: ''
+    })
+  }
+
+  // var ans = await repo.query('insert into person(email, password) values(:email, :password)', {
+  //   email: email,
+  //   password: password
+  // })
 
   //do a transaction here as described in Navicat
 })
