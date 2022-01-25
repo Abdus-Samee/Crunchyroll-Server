@@ -50,6 +50,16 @@ router.get('/anime/:animeId', async (req, res, next) => {
   res.send(ans.data[0])
 })
 
+router.get('/anime/episodes/:animeId', async (req, res, next) => {
+  const animeId = req.params.animeId
+  var ans = await repo.query('select * from animeepisodes where animeid = :animeId', {
+    animeId: animeId 
+  })
+  console.log(ans)
+
+  res.send(ans.data)
+})
+
 router.get('/manga', async (req, res, next) => {
   var ans = await repo.query('select * from manga', {})
   console.log(ans)
