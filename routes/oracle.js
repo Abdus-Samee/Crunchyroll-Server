@@ -121,4 +121,28 @@ router.get('/pdf', (req, res) => {
   res.send(data)
 })
 
+router.get('/manga/image/:mangaId/:chapter', async (req, res, next) => {
+  const mangaId = req.params.mangaId
+  const chapter = req.params.chapter
+  var image = fs.readFileSync('public/images/' + mangaId + '/' + chapter + '.jpg')
+  res.contentType("image/png")
+  res.send(image)
+})
+
+router.get('/manga/chapters/:mangaId', async (req, res, next) => {
+  const mangaId = req.params.mangaId
+  var ans = await repo.query('select chapter from mangachapters where mangaid = :mangaId', {
+    mangaId: mangaId
+  })
+  console.log(ans)
+  res.send(ans.data)
+  // res.setHeader("Content-Type", "image/jpg")
+  // ans.data.forEach(element => { 
+  //   var image = fs.readFileSync('public/images/' + element.MANGAID + '/' + element.CHAPTER + '.JPG')
+    
+  //   res.write(image)
+  // })
+  // res.end()
+}) 
+
 module.exports = router
