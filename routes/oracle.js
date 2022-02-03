@@ -3,8 +3,12 @@ var router = express.Router()
 var oracledb = require('oracledb')
 var fs = require('fs')
 var Repository = require('../connection/query').Repository
+const res = require('express/lib/response')
 var repo = new Repository()
 
+/***
+ * fetches all animes from the database
+ */
 router.get('/anime', async (req, res, next) => {
     var ans = await repo.query('select * from anime', {})
     console.log(ans)
@@ -40,6 +44,9 @@ router.get('/anime', async (req, res, next) => {
     // })
 })
 
+/**
+ * fetches a particular anime with the parameter animeId from the database
+ */
 router.get('/anime/:animeId', async (req, res, next) => {
   const animeId = req.params.animeId
   var ans = await repo.query('select * from anime where animeid = :animeId', {
@@ -50,6 +57,9 @@ router.get('/anime/:animeId', async (req, res, next) => {
   res.send(ans.data[0])
 })
 
+/**
+ * fetches the strings of all the episode names of a particular anime with the parameter animeId from the database
+ */
 router.get('/anime/episodes/:animeId', async (req, res, next) => {
   const animeId = req.params.animeId
   var ans = await repo.query('select * from animeepisodes where animeid = :animeId', {
@@ -60,14 +70,30 @@ router.get('/anime/episodes/:animeId', async (req, res, next) => {
   res.send(ans.data)
 })
 
-router.get('/manga', async (req, res, next) => {
-  var ans = await repo.query('select * from manga', {})
+/**
+ * fetches all the genre names from the database
+ */
+router.get('/genres', async (req, res, next) => {
+  var ans = await repo.query('select * from genre', {})
   console.log(ans)
   res.send(ans.data)
 })
 
-router.get('/genres', async (req, res, next) => {
-  var ans = await repo.query('select * from genre', {})
+//try updating useEffect in client side Genre component and call separately for anime and manga
+router.get('/animegenre/:genre', async (req, res, next) => {
+  var ans = await repo.query('select * from anime where animeid in (select animeid from animegenre where genrename=:genre)', {
+    genre: req.params.genre
+  })
+
+  console.log(ans)
+  res.send(ans.data)
+})
+
+router.get('/mangagenre/:genre', async (req, res, next) => {
+  var ans = await repo.query('select * from manga where mangaid in (select mangaid from mangagenre where genrename=:genre)', {
+    genre: req.params.genre
+  })
+
   console.log(ans)
   res.send(ans.data)
 })
@@ -115,20 +141,40 @@ router.get('/video', (req, res) => {
   }
 })
 
+/**
+ * testing route for sending pdf as a response
+ */
 router.get('/pdf', (req, res) => {
   var data =fs.readFileSync('public/pdf/manga.pdf')
   res.contentType("application/pdf")
   res.send(data)
 })
 
-router.get('/manga/image/:mangaId/:chapter', async (req, res, next) => {
-  const mangaId = req.params.mangaId
-  const chapter = req.params.chapter
-  var image = fs.readFileSync('public/images/' + mangaId + '/' + chapter + '.jpg')
-  res.contentType("image/png")
-  res.send(image)
+/**
+ * fetches all mangaas from the database
+ */
+ router.get('/manga', async (req, res, next) => {
+  var ans = await repo.query('select * from manga', {})
+  console.log(ans)
+  res.send(ans.data)
 })
 
+/**
+ * fetches a particular manga with the parameter mangaId from the database
+ */
+ router.get('/manga/:mangaId', async (req, res, next) => {
+  const mangaId = req.params.mangaId
+  var ans = await repo.query('select * from manga where mangaid = :mangaId', {
+    mangaId: mangaId
+  })
+  console.log(ans)
+  
+  res.send(ans.data[0])
+})
+
+/**
+ * fetches all the chapter names of a particular manga from the database
+ */
 router.get('/manga/chapters/:mangaId', async (req, res, next) => {
   const mangaId = req.params.mangaId
   var ans = await repo.query('select chapter from mangachapters where mangaid = :mangaId', {
@@ -136,13 +182,28 @@ router.get('/manga/chapters/:mangaId', async (req, res, next) => {
   })
   console.log(ans)
   res.send(ans.data)
-  // res.setHeader("Content-Type", "image/jpg")
-  // ans.data.forEach(element => { 
-  //   var image = fs.readFileSync('public/images/' + element.MANGAID + '/' + element.CHAPTER + '.JPG')
-    
-  //   res.write(image)
-  // })
-  // res.end()
-}) 
+})
+
+/**
+ * fetches the pdf of the concerned chapter of a particular manga from the database
+ */
+router.get('/manga/:mangaId/:chapter', async (req, res, next) => {
+  const mangaId = req.params.mangaId
+  const chapter = req.params.chapter
+  var data =fs.readFileSync('public/pdf/'+mangaId+'/'+chapter+'.pdf')
+  res.contentType("application/pdf")
+  res.send(data)
+})
+
+/**
+ * fetches all the strings of the images of a particular chapter of a particular manga from the database
+ */
+router.get('/manga/image/:mangaId/:chapter', async (req, res, next) => {
+  const mangaId = req.params.mangaId
+  const chapter = req.params.chapter
+  var image = fs.readFileSync('public/images/' + mangaId + '/' + chapter + '.jpg')
+  res.contentType("image/png")
+  res.send(image)
+})
 
 module.exports = router
