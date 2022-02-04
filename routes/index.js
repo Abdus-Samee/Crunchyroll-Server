@@ -13,21 +13,39 @@ router.post('/login', async (req, res) => {
   const email = req.body.email
   const password = req.body.password
 
-  var ans = await repo.query('select * from person where email = :email and password = :password', {
-    email: email,
-    password: password
+  var ans = await repo.query('select get(:email, :password) info from dual', {
+    email: 'samee@gmail.com',
+    password: 'samee1234'
   })
   console.log(ans)
 
-  if(ans.success === true && ans.data.length > 0){
-    res.send({
-      token: 'test123'
-    })
+  var ar = ans.data[0]["INFO"]
+
+  if(ar[0] !== '-'){
+    const ara = ar.split(' ')
+    if(ara[1] === 'member'){
+      res.send({
+        token: 'test123member',
+        id: ara[0],
+      })
+    }else{
+      res.send({
+        token: 'test123admin',
+        id: ara[0],
+      })
+    }
   }else{
     res.send({
       token: ''
     })
   }
+})
+
+router.get('/test', async (req, res, next) => {
+  res.send({
+    token: 'test123member',
+    id: '1',
+  })
 })
 
 router.post('/signup', async (req, res) => {
