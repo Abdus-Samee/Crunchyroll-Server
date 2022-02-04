@@ -14,8 +14,8 @@ router.post('/login', async (req, res) => {
   const password = req.body.password
 
   var ans = await repo.query('select get(:email, :password) info from dual', {
-    email: 'samee@gmail.com',
-    password: 'samee1234'
+    email: email,
+    password: password
   })
   console.log(ans)
 
@@ -43,11 +43,13 @@ router.post('/login', async (req, res) => {
 
 router.get('/test', async (req, res, next) => {
   res.send({
-    token: 'test123member',
-    id: '1',
+    reply: 1
   })
 })
 
+/**
+ * needs correction
+ */
 router.post('/signup', async (req, res) => {
   const email = req.body.email
   const password = req.body.password

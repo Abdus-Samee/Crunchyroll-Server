@@ -206,4 +206,33 @@ router.get('/manga/image/:mangaId/:chapter', async (req, res, next) => {
   res.send(image)
 })
 
+/**
+ * fetches all the blogs from the database
+ */
+router.get('/blogs', async (req, res, next) => {
+  var ans = await repo.query('select * from blog', {})
+  console.log(ans)
+  res.send(ans.data)
+})
+
+/**
+ * stores blogs written by an admin
+ */
+router.post('/blogs', async (req, res, next) => {
+  const title = req.body.title
+  const text = req.body.text
+  const id = req.body.id
+
+  var ans = await repo.query('select blog_func(:id, :title, :text) rep from dual', {
+    title: title,
+    text: text,
+    id: id
+  })
+  console.log(ans)
+
+  res.send({
+    reply: ans.data[0]["REP"]
+  })
+})
+
 module.exports = router
