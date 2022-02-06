@@ -71,6 +71,52 @@ router.get('/anime/episodes/:animeId', async (req, res, next) => {
 })
 
 /**
+ * fetches a particular episode of a particular anime from the database
+ */
+ router.get('/anime/:animeId/:episode', async (req, res, next) => {
+  // Ensure there is a range given for the video
+  const range = req.headers.range
+  // get video stats (about 61MB)
+  const videoPath = "public/videos/" + req.params.animeId + "/" + req.params.episode + ".mp4"
+  const videoSize = fs.statSync(videoPath).size
+  console.log(videoPath)
+  console.log(videoSize)
+
+  if (!range) {
+    const head = {
+        'Content-Length': videoSize,
+        'Content-Type': 'video/mp4',
+    }
+    res.writeHead(200, head)
+    fs.createReadStream(videoPath).pipe(res)
+  }else{
+    // Parse Range
+    // Example: "bytes=32324-"
+    const CHUNK_SIZE = 10 ** 6 // 1MB
+    const start = Number(range.replace(/\D/g, ""))
+    const end = Math.min(start + CHUNK_SIZE, videoSize - 1)
+
+    // Create headers
+    const contentLength = end - start + 1
+    const headers = {
+        "Content-Range": `bytes ${start}-${end}/${videoSize}`,
+        "Accept-Ranges": "bytes",
+        "Content-Length": contentLength,
+        "Content-Type": "video/mp4",
+    }
+
+    // HTTP Status 206 for Partial Content
+    res.writeHead(206, headers)
+
+    // create video read stream for this particular chunk
+    const videoStream = fs.createReadStream(videoPath, { start, end })
+
+    // Stream the video chunk to the client
+    videoStream.pipe(res)
+  }
+})
+
+/**
  * fetches all the genre names from the database
  */
 router.get('/genres', async (req, res, next) => {
@@ -233,6 +279,18 @@ router.post('/blogs', async (req, res, next) => {
   res.send({
     reply: ans.data[0]["REP"]
   })
+})
+
+/**
+ * fetches a blog with a particular id
+ */
+router.get('/blogs/:id', async (req, res, next) => {
+  var ans = await repo.query('select * from blog where blogid = :id', {
+    id: req.params.id 
+  })
+  console.log(ans)
+
+  res.send(ans.data[0])
 })
 
 module.exports = router
