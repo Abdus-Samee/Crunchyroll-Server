@@ -293,4 +293,34 @@ router.get('/blogs/:id', async (req, res, next) => {
   res.send(ans.data[0])
 })
 
+/**
+ * fetches all the comments of a particular blog
+ */
+router.get('/comments/:blogid', async (req, res, next) => {
+  var ans = await repo.query('select * from comments where blogid = :blogid', {
+    blogid: req.params.blogid
+  })
+  console.log(ans)
+
+  res.send(ans.data)
+})
+
+/** 
+ * stores a comment written by a member
+ */
+router.post('/blogs/:id', async (req, res, next) => {
+  var insertComment  = "declare \n" +
+                "begin \n" +
+                "insert into comments(blogid, text) values(:id, :txt);\n" + 
+                "commit; \n" +
+                "end;"
+  var ans = await repo.query(insertComment, {
+    id: req.params.id,
+    txt: req.body.comment
+  })
+
+  console.log(ans)
+  res.send(ans)
+})
+
 module.exports = router
