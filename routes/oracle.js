@@ -131,6 +131,19 @@ router.get('/animereview/:animeId', async (req, res, next) => {
 })
 
 /**
+ * fetches the overall review only of a particular anime for an unlogged user
+ */
+router.get('/animereview/total/:animeId', async (req, res, next) => {
+  const animeId = req.params.animeId
+  var ans = await repo.query('select sum(rating)/count(memberid) count from animereview where animeid = :animeId', {
+    animeId: animeId
+  })
+  console.log(ans)
+
+  res.send(ans.data[0])
+})
+
+/**
  * checks if a particular user has already reviewed a particular anime
  */
 router.get('/animereview/:animeId/:userId', async (req, res, next) => {
