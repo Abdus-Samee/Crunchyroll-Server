@@ -48,6 +48,7 @@ router.get('/anime', async (req, res, next) => {
  * fetches a particular anime with the parameter animeId from the database
  */
 router.get('/anime/:animeId', async (req, res, next) => {
+  //need to fetch the average ratings from the review table...
   const animeId = req.params.animeId
   var ans = await repo.query('select * from anime where animeid = :animeId', {
     animeId: animeId
@@ -114,6 +115,79 @@ router.get('/anime/episodes/:animeId', async (req, res, next) => {
     // Stream the video chunk to the client
     videoStream.pipe(res)
   }
+})
+  
+/**
+ * fetches all the reviews of a particular anime from the database
+ */
+router.get('/animereview/:animeId', async (req, res, next) => {
+  const animeId = req.params.animeId
+  var ans = await repo.query('select * from animereview where animeid = :animeId', {
+    animeId: animeId
+  })
+  console.log(ans)
+
+  res.send(ans.data)
+})
+
+/**
+ * checks if a particular user has already reviewed a particular anime
+ */
+router.get('/animereview/:animeId/:userId', async (req, res, next) => {
+  const animeId = req.params.animeId
+  const userId = req.params.userId
+  var selectReview = 'select sum(rating)/count(memberid) count, '+
+                     '(select memberid from animereview where animeid=:animeId and memberid=:userId) member, '+
+                     '(select rating from animereview where animeid=:animeId and memberid=:userId) rating '+
+                     'from animereview where animeid=:animeId group by animeid'
+  var ans = await repo.query(selectReview, {
+    animeId: animeId,
+    userId: userId
+  })
+  console.log(ans)
+
+  res.send(ans.data)
+})
+
+/**
+ * older route which checks if a particular user has already reviewed a particular anime
+ */
+// router.get('/animereview/:animeId/:userId', async (req, res, next) => {
+//   const animeId = req.params.animeId
+//   const userId = req.params.userId
+//   var ans = await repo.query('select * from animereview where animeid = :animeId and memberid = :userId', {
+//     animeId: animeId,
+//     userId: userId
+//   })
+//   console.log(ans)
+
+//   res.send(ans.data)
+// })
+ 
+/**
+ * registers rating for a particular anime
+ */
+router.post('/animereview/:animeId', async (req, res, next) => {
+    const animeId = req.params.animeId
+    const rating = req.body.rating
+    const reviewText = req.body.reviewText
+    const userid = req.body.userID
+
+    var insertReview  = "declare \n" +
+                         "begin \n" +
+                         "insert into animereview(memberid, animeid, text, rating, time) values(:userid, :animeId, :reviewText, :rating, sysdate);\n" + 
+                         "commit; \n" +
+                         "end;"
+
+    var ans = await repo.query(insertReview, {
+        userid: userid,
+        animeId: animeId,
+        reviewText: reviewText,
+        rating: rating,
+    })
+    console.log(ans)
+
+    res.send(ans)
 })
 
 /**
