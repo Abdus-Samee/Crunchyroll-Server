@@ -410,4 +410,21 @@ router.post('/blogs/:id', async (req, res, next) => {
   res.send(ans)
 })
 
+/**
+ * fetches all the plans from the database
+ */
+router.get('/plan', async (req, res, next) => {
+  var ans = await repo.query('select * from plan', {})
+  console.log(ans)
+
+  res.send(ans.data)
+})
+
+router.post('/plan', async (req, res, next) => {
+  res.status(200).send({
+    message: "plan posted",
+    success: true
+  })
+})
+
 module.exports = router
