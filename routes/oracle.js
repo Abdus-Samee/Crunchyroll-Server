@@ -421,10 +421,18 @@ router.get('/plan', async (req, res, next) => {
 })
 
 router.post('/plan', async (req, res, next) => {
-  res.status(200).send({
-    message: "plan posted",
-    success: true
+  const memberid = req.body.memberid
+  const planid = req.body.planid
+
+  var ans = await repo.query('select buy_plan(:memberid, :planid) rep from dual', {
+    memberid: memberid,
+    planid: planid
   })
-})
+  console.log(ans)
+
+  res.send({
+    reply: ans.data[0]["REP"]
+  })
+}) 
 
 module.exports = router
