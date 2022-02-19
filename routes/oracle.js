@@ -420,6 +420,9 @@ router.get('/plan', async (req, res, next) => {
   res.send(ans.data)
 })
 
+/**
+ * calls a function from database to buy a plan
+ */
 router.post('/plan', async (req, res, next) => {
   const memberid = req.body.memberid
   const planid = req.body.planid
@@ -433,6 +436,40 @@ router.post('/plan', async (req, res, next) => {
   res.send({
     reply: ans.data[0]["REP"]
   })
-}) 
+})
+
+/**
+ * checks if a member bought any plan or not
+ */
+router.get('/plan/:memberid', async (req, res, next) => {
+  var ans = await repo.query('select is_premium(:memberid) rep from dual', {
+    memberid: req.params.memberid
+  })
+  console.log(ans)
+
+  res.send({
+    reply: ans.data[0]["REP"]
+  })
+})
+
+/**
+ * fetches all the premium animes from the database
+ */
+router.get('/panime', async (req, res, next) => {
+  var ans = await repo.query('select * from premiumanime', {})
+  console.log(ans)
+
+  res.send(ans.data)
+})
+
+/**
+ * fetches all the premium mangas from the database
+ */
+router.get('/pmanga', async (req, res, next) => {
+  var ans = await repo.query('select * from premiummanga', {})
+  console.log(ans)
+
+  res.send(ans.data)
+})
 
 module.exports = router
