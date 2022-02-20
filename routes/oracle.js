@@ -329,6 +329,77 @@ router.get('/manga/:mangaId/:chapter', async (req, res, next) => {
 })
 
 /**
+ * fetches all the reviews of a particular manga from the database
+ */
+ router.get('/mangareview/:mangaId', async (req, res, next) => {
+  const mangaId = req.params.mangaId
+  var ans = await repo.query('select * from mangareview where mangaId = :mangaId', {
+    mangaId: mangaId
+  })
+  console.log(ans)
+
+  res.send(ans.data)
+})
+
+/**
+ * fetches the overall review only of a particular manga for an unlogged user
+ */
+ router.get('/mangareview/total/:mangaId', async (req, res, next) => {
+  const mangaId = req.params.mangaId
+  var ans = await repo.query('select sum(rating)/count(memberid) count from mangareview where mangaId = :mangaId', {
+    mangaId: mangaId
+  })
+  console.log(ans)
+
+  res.send(ans.data[0])
+})
+
+/**
+ * checks if a particular user has already reviewed a particular manga
+ */
+ router.get('/mangareview/:mangaId/:userId', async (req, res, next) => {
+  const mangaId = req.params.mangaId
+  const userId = req.params.userId
+  var selectReview = 'select sum(rating)/count(memberid) count, '+
+                     '(select memberid from mangareview where mangaId=:mangaId and memberid=:userId) member, '+
+                     '(select rating from mangareview where mangaId=:mangaId and memberid=:userId) rating '+
+                     'from mangareview where animeid=:animeId group by mangaId'
+  var ans = await repo.query(selectReview, {
+    mangaId: mangaId,
+    userId: userId
+  })
+  console.log(ans)
+
+  res.send(ans.data)
+})
+
+/**
+ * registers rating for a particular manga
+ */
+ router.post('/mangareview/:mangaId', async (req, res, next) => {
+  const mangaId = req.params.mangaId
+  const rating = req.body.rating
+  const reviewText = req.body.reviewText
+  const userid = req.body.userID
+
+  var insertReview  = "declare \n" +
+                       "begin \n" +
+                       "insert into mangareview(memberid, mangaId, text, rating, time) values(:userid, :mangaId, :reviewText, :rating, sysdate);\n" + 
+                       "commit; \n" +
+                       "end;"
+
+  var ans = await repo.query(insertReview, {
+      userid: userid,
+      mangaId: mangaId,
+      reviewText: reviewText,
+      rating: rating,
+  })
+  console.log(ans)
+
+  res.send(ans)
+})
+
+/**
  * fetches all the strings of the images of a particular chapter of a particular manga from the database
  */
 // router.get('/manga/image/:mangaId/:chapter', async (req, res, next) => {
@@ -651,6 +722,77 @@ router.get('/pmanga', async (req, res, next) => {
   var data =fs.readFileSync('public/ppdf/'+pmangaId+'/'+chapter+'.pdf')
   res.contentType("application/pdf")
   res.send(data)
+})
+
+/**
+ * fetches all the reviews of a particular premium manga from the database
+ */
+ router.get('/pmangareview/:pmangaId', async (req, res, next) => {
+  const pmangaId = req.params.pmangaId
+  var ans = await repo.query('select * from premiummangareview where pmangaId = :pmangaId', {
+    pmangaId: pmangaId
+  })
+  console.log(ans)
+
+  res.send(ans.data)
+})
+
+/**
+ * fetches the overall review only of a particular premium manga for an unlogged user
+ */
+ router.get('/pmangareview/total/:pmangaId', async (req, res, next) => {
+  const pmangaId = req.params.pmangaId
+  var ans = await repo.query('select sum(rating)/count(memberid) count from premiummangareview where pmangaId = :pmangaId', {
+    pmangaId: pmangaId
+  })
+  console.log(ans)
+
+  res.send(ans.data[0])
+})
+
+/**
+ * checks if a particular user has already reviewed a particular premium manga
+ */
+ router.get('/pmangareview/:pmangaId/:userId', async (req, res, next) => {
+  const pmangaId = req.params.pmangaId
+  const userId = req.params.userId
+  var selectReview = 'select sum(rating)/count(memberid) count, '+
+                     '(select memberid from premiummangareview where pmangaId=:pmangaId and memberid=:userId) member, '+
+                     '(select rating from premiummangareview where pmangaId=:pmangaId and memberid=:userId) rating '+
+                     'from premiummangareview where pmangaId=:pmangaId group by pmangaId'
+  var ans = await repo.query(selectReview, {
+    pmangaId: pmangaId,
+    userId: userId
+  })
+  console.log(ans)
+
+  res.send(ans.data)
+})
+
+/**
+ * registers rating for a particular premium manga
+ */
+ router.post('/pmangareview/:pmangaId', async (req, res, next) => {
+  const pmangaId = req.params.pmangaId
+  const rating = req.body.rating
+  const reviewText = req.body.reviewText
+  const userid = req.body.userID
+
+  var insertReview  = "declare \n" +
+                       "begin \n" +
+                       "insert into premiummangareview(memberid, pmangaId, text, rating, time) values(:userid, :pmangaId, :reviewText, :rating, sysdate);\n" + 
+                       "commit; \n" +
+                       "end;"
+
+  var ans = await repo.query(insertReview, {
+      userid: userid,
+      pmangaId: pmangaId,
+      reviewText: reviewText,
+      rating: rating,
+  })
+  console.log(ans)
+
+  res.send(ans)
 })
 
 module.exports = router
