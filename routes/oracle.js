@@ -212,9 +212,35 @@ router.get('/genres', async (req, res, next) => {
   res.send(ans.data)
 })
 
-//try updating useEffect in client side Genre component and call separately for anime and manga
+/**
+ * fetches all the animes of a particular genre from the database
+ */
 router.get('/animegenre/:genre', async (req, res, next) => {
   var ans = await repo.query('select * from anime where animeid in (select animeid from animegenre where genrename=:genre)', {
+    genre: req.params.genre
+  })
+  console.log(ans)
+
+  res.send(ans.data)
+})
+
+/**
+ * fetches all the premium animes of a particular genre from the database
+ */
+router.get('/panimegenre/:genre', async (req, res, next) => {
+  var ans = await repo.query('select * from premiumanime where panimeid in (select panimeid from premiumanimegenre where genrename=:genre)', {
+    genre: req.params.genre
+  })
+  console.log(ans)
+
+  res.send(ans.data)
+})
+
+/**
+ * fetches all the mangas of a particular genre from the database
+ */
+router.get('/mangagenre/:genre', async (req, res, next) => {
+  var ans = await repo.query('select * from manga where mangaid in (select mangaid from mangagenre where genrename=:genre)', {
     genre: req.params.genre
   })
 
@@ -222,12 +248,15 @@ router.get('/animegenre/:genre', async (req, res, next) => {
   res.send(ans.data)
 })
 
-router.get('/mangagenre/:genre', async (req, res, next) => {
-  var ans = await repo.query('select * from manga where mangaid in (select mangaid from mangagenre where genrename=:genre)', {
+/**
+ * fetches all the premium mangas of a particular genre from the database
+ */
+router.get('/pmangagenre/:genre', async (req, res, next) => {
+  var ans = await repo.query('select * from premiummanga where pmangaid in (select pmangaid from premiummangagenre where genrename=:genre)', {
     genre: req.params.genre
   })
-
   console.log(ans)
+
   res.send(ans.data)
 })
 
