@@ -331,13 +331,13 @@ router.get('/manga/:mangaId/:chapter', async (req, res, next) => {
 /**
  * fetches all the strings of the images of a particular chapter of a particular manga from the database
  */
-router.get('/manga/image/:mangaId/:chapter', async (req, res, next) => {
-  const mangaId = req.params.mangaId
-  const chapter = req.params.chapter
-  var image = fs.readFileSync('public/images/' + mangaId + '/' + chapter + '.jpg')
-  res.contentType("image/png")
-  res.send(image)
-})
+// router.get('/manga/image/:mangaId/:chapter', async (req, res, next) => {
+//   const mangaId = req.params.mangaId
+//   const chapter = req.params.chapter
+//   var image = fs.readFileSync('public/images/' + mangaId + '/' + chapter + '.jpg')
+//   res.contentType("image/png")
+//   res.send(image)
+// })
 
 /**
  * fetches all the blogs from the database
@@ -463,6 +463,150 @@ router.get('/panime', async (req, res, next) => {
 })
 
 /**
+ * fetches a particular premium anime with the parameter panimeId from the database
+ */
+ router.get('/panime/:panimeId', async (req, res, next) => {
+  //need to fetch the average ratings from the review table...
+  const panimeId = req.params.panimeId
+  var ans = await repo.query('select * from premiumanime where panimeid = :panimeId', {
+    panimeId: panimeId
+  })
+  console.log(ans)
+  
+  res.send(ans.data[0])
+})
+
+/**
+ * fetches the strings of all the episode names of a particular premium anime with the parameter panimeId from the database
+ */
+ router.get('/panime/episodes/:panimeId', async (req, res, next) => {
+  const panimeId = req.params.panimeId
+  var ans = await repo.query('select * from premiumanimeepisodes where panimeId = :panimeId', {
+    panimeId: panimeId 
+  })
+  console.log(ans)
+
+  res.send(ans.data)
+})
+
+/**
+ * fetches a particular episode of a particular premium anime from the database
+ */
+ router.get('/panime/:panimeId/:episode', async (req, res, next) => {
+  // Ensure there is a range given for the video
+  const range = req.headers.range
+  // get video stats (about 61MB)
+  const videoPath = "public/pvideos/" + req.params.panimeId + "/" + req.params.episode + ".mp4"
+  const videoSize = fs.statSync(videoPath).size
+  console.log(videoPath)
+  console.log(videoSize)
+
+  if (!range) {
+    const head = {
+        'Content-Length': videoSize,
+        'Content-Type': 'video/mp4',
+    }
+    res.writeHead(200, head)
+    fs.createReadStream(videoPath).pipe(res)
+  }else{
+    // Parse Range
+    // Example: "bytes=32324-"
+    const CHUNK_SIZE = 10 ** 6 // 1MB
+    const start = Number(range.replace(/\D/g, ""))
+    const end = Math.min(start + CHUNK_SIZE, videoSize - 1)
+
+    // Create headers
+    const contentLength = end - start + 1
+    const headers = {
+        "Content-Range": `bytes ${start}-${end}/${videoSize}`,
+        "Accept-Ranges": "bytes",
+        "Content-Length": contentLength,
+        "Content-Type": "video/mp4",
+    }
+
+    // HTTP Status 206 for Partial Content
+    res.writeHead(206, headers)
+
+    // create video read stream for this particular chunk
+    const videoStream = fs.createReadStream(videoPath, { start, end })
+
+    // Stream the video chunk to the client
+    videoStream.pipe(res)
+  }
+})
+
+/**
+ * fetches all the reviews of a particular premium anime from the database
+ */
+ router.get('/panimereview/:panimeId', async (req, res, next) => {
+  const panimeId = req.params.panimeId
+  var ans = await repo.query('select * from premiumanimereview where panimeId = :panimeId', {
+    panimeId: panimeId
+  })
+  console.log(ans)
+
+  res.send(ans.data)
+})
+
+/**
+ * fetches the overall review only of a particular premium anime for an unlogged user
+ */
+ router.get('/panimereview/total/:panimeId', async (req, res, next) => {
+  const panimeId = req.params.panimeId
+  var ans = await repo.query('select sum(rating)/count(memberid) count from premiumanimereview where panimeId = :panimeId', {
+    panimeId: panimeId
+  })
+  console.log(ans)
+
+  res.send(ans.data[0])
+})
+
+/**
+ * checks if a particular user has already reviewed a particular premium anime
+ */
+ router.get('/panimereview/:panimeId/:userId', async (req, res, next) => {
+  const panimeId = req.params.panimeId
+  const userId = req.params.userId
+  var selectReview = 'select sum(rating)/count(memberid) count, '+
+                     '(select memberid from premiumanimereview where panimeId=:panimeId and memberid=:userId) member, '+
+                     '(select rating from premiumanimereview where panimeId=:panimeId and memberid=:userId) rating '+
+                     'from premiumanimereview where panimeId=:panimeId group by panimeId'
+  var ans = await repo.query(selectReview, {
+    panimeId: panimeId,
+    userId: userId
+  })
+  console.log(ans)
+
+  res.send(ans.data)
+})
+
+/**
+ * registers rating for a particular premium anime
+ */
+ router.post('/panimereview/:panimeId', async (req, res, next) => {
+  const panimeId = req.params.panimeId
+  const rating = req.body.rating
+  const reviewText = req.body.reviewText
+  const userid = req.body.userID
+
+  var insertReview  = "declare \n" +
+                       "begin \n" +
+                       "insert into premiumanimereview(memberid, panimeid, text, rating, time) values(:userid, :panimeId, :reviewText, :rating, sysdate);\n" + 
+                       "commit; \n" +
+                       "end;"
+
+  var ans = await repo.query(insertReview, {
+      userid: userid,
+      panimeId: panimeId,
+      reviewText: reviewText,
+      rating: rating,
+  })
+  console.log(ans)
+
+  res.send(ans)
+})
+
+/**
  * fetches all the premium mangas from the database
  */
 router.get('/pmanga', async (req, res, next) => {
@@ -470,6 +614,43 @@ router.get('/pmanga', async (req, res, next) => {
   console.log(ans)
 
   res.send(ans.data)
+})
+
+
+/**
+ * fetches a particular premium manga with the parameter pmangaId from the database
+ */
+ router.get('/pmanga/:pmangaId', async (req, res, next) => {
+  const pmangaId = req.params.pmangaId
+  var ans = await repo.query('select * from premiummanga where pmangaId = :pmangaId', {
+    pmangaId: pmangaId
+  })
+  console.log(ans)
+  
+  res.send(ans.data[0])
+}) 
+
+/**
+ * fetches all the chapter names of a particular premium manga from the database
+ */
+ router.get('/pmanga/chapters/:pmangaId', async (req, res, next) => {
+  const pmangaId = req.params.pmangaId
+  var ans = await repo.query('select chapter from premiummangachapters where pmangaId = :pmangaId', {
+    pmangaId: pmangaId
+  })
+  console.log(ans)
+  res.send(ans.data)
+})
+
+/**
+ * fetches the pdf of the concerned chapter of a particular premium manga from the database
+ */
+ router.get('/pmanga/:pmangaId/:chapter', async (req, res, next) => {
+  const pmangaId = req.params.pmangaId
+  const chapter = req.params.chapter
+  var data =fs.readFileSync('public/ppdf/'+pmangaId+'/'+chapter+'.pdf')
+  res.contentType("application/pdf")
+  res.send(data)
 })
 
 module.exports = router
