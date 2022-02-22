@@ -135,7 +135,7 @@ router.get('/animereview/:animeId', async (req, res, next) => {
  */
 router.get('/animereview/total/:animeId', async (req, res, next) => {
   const animeId = req.params.animeId
-  var ans = await repo.query('select sum(rating)/count(memberid) count from animereview where animeid = :animeId', {
+  var ans = await repo.query('select sum(rating)/count(id) count from animereview where animeid = :animeId', {
     animeId: animeId
   })
   console.log(ans)
@@ -149,9 +149,9 @@ router.get('/animereview/total/:animeId', async (req, res, next) => {
 router.get('/animereview/:animeId/:userId', async (req, res, next) => {
   const animeId = req.params.animeId
   const userId = req.params.userId
-  var selectReview = 'select sum(rating)/count(memberid) count, '+
-                     '(select memberid from animereview where animeid=:animeId and memberid=:userId) member, '+
-                     '(select rating from animereview where animeid=:animeId and memberid=:userId) rating '+
+  var selectReview = 'select sum(rating)/count(id) count, '+
+                     '(select id from animereview where animeid=:animeId and id=:userId) member, '+
+                     '(select rating from animereview where animeid=:animeId and id=:userId) rating '+
                      'from animereview where animeid=:animeId group by animeid'
   var ans = await repo.query(selectReview, {
     animeId: animeId,
@@ -188,7 +188,7 @@ router.post('/animereview/:animeId', async (req, res, next) => {
 
     var insertReview  = "declare \n" +
                          "begin \n" +
-                         "insert into animereview(memberid, animeid, text, rating, time) values(:userid, :animeId, :reviewText, :rating, sysdate);\n" + 
+                         "insert into animereview(id, animeid, text, rating, time) values(:userid, :animeId, :reviewText, :rating, sysdate);\n" + 
                          "commit; \n" +
                          "end;"
 
@@ -375,7 +375,7 @@ router.get('/manga/:mangaId/:chapter', async (req, res, next) => {
  */
  router.get('/mangareview/total/:mangaId', async (req, res, next) => {
   const mangaId = req.params.mangaId
-  var ans = await repo.query('select sum(rating)/count(memberid) count from mangareview where mangaId = :mangaId', {
+  var ans = await repo.query('select sum(rating)/count(id) count from mangareview where mangaId = :mangaId', {
     mangaId: mangaId
   })
   console.log(ans)
@@ -389,9 +389,9 @@ router.get('/manga/:mangaId/:chapter', async (req, res, next) => {
  router.get('/mangareview/:mangaId/:userId', async (req, res, next) => {
   const mangaId = req.params.mangaId
   const userId = req.params.userId
-  var selectReview = 'select sum(rating)/count(memberid) count, '+
-                     '(select memberid from mangareview where mangaId=:mangaId and memberid=:userId) member, '+
-                     '(select rating from mangareview where mangaId=:mangaId and memberid=:userId) rating '+
+  var selectReview = 'select sum(rating)/count(id) count, '+
+                     '(select id from mangareview where mangaId=:mangaId and id=:userId) member, '+
+                     '(select rating from mangareview where mangaId=:mangaId and id=:userId) rating '+
                      'from mangareview where animeid=:animeId group by mangaId'
   var ans = await repo.query(selectReview, {
     mangaId: mangaId,
@@ -413,7 +413,7 @@ router.get('/manga/:mangaId/:chapter', async (req, res, next) => {
 
   var insertReview  = "declare \n" +
                        "begin \n" +
-                       "insert into mangareview(memberid, mangaId, text, rating, time) values(:userid, :mangaId, :reviewText, :rating, sysdate);\n" + 
+                       "insert into mangareview(id, mangaId, text, rating, time) values(:userid, :mangaId, :reviewText, :rating, sysdate);\n" + 
                        "commit; \n" +
                        "end;"
 
@@ -653,7 +653,7 @@ router.get('/panime', async (req, res, next) => {
  */
  router.get('/panimereview/total/:panimeId', async (req, res, next) => {
   const panimeId = req.params.panimeId
-  var ans = await repo.query('select sum(rating)/count(memberid) count from premiumanimereview where panimeId = :panimeId', {
+  var ans = await repo.query('select sum(rating)/count(id) count from premiumanimereview where panimeId = :panimeId', {
     panimeId: panimeId
   })
   console.log(ans)
@@ -667,9 +667,9 @@ router.get('/panime', async (req, res, next) => {
  router.get('/panimereview/:panimeId/:userId', async (req, res, next) => {
   const panimeId = req.params.panimeId
   const userId = req.params.userId
-  var selectReview = 'select sum(rating)/count(memberid) count, '+
-                     '(select memberid from premiumanimereview where panimeId=:panimeId and memberid=:userId) member, '+
-                     '(select rating from premiumanimereview where panimeId=:panimeId and memberid=:userId) rating '+
+  var selectReview = 'select sum(rating)/count(id) count, '+
+                     '(select id from premiumanimereview where panimeId=:panimeId and id=:userId) member, '+
+                     '(select rating from premiumanimereview where panimeId=:panimeId and id=:userId) rating '+
                      'from premiumanimereview where panimeId=:panimeId group by panimeId'
   var ans = await repo.query(selectReview, {
     panimeId: panimeId,
@@ -691,7 +691,7 @@ router.get('/panime', async (req, res, next) => {
 
   var insertReview  = "declare \n" +
                        "begin \n" +
-                       "insert into premiumanimereview(memberid, panimeid, text, rating, time) values(:userid, :panimeId, :reviewText, :rating, sysdate);\n" + 
+                       "insert into premiumanimereview(id, panimeid, text, rating, time) values(:userid, :panimeId, :reviewText, :rating, sysdate);\n" + 
                        "commit; \n" +
                        "end;"
 
@@ -771,7 +771,7 @@ router.get('/pmanga', async (req, res, next) => {
  */
  router.get('/pmangareview/total/:pmangaId', async (req, res, next) => {
   const pmangaId = req.params.pmangaId
-  var ans = await repo.query('select sum(rating)/count(memberid) count from premiummangareview where pmangaId = :pmangaId', {
+  var ans = await repo.query('select sum(rating)/count(id) count from premiummangareview where pmangaId = :pmangaId', {
     pmangaId: pmangaId
   })
   console.log(ans)
@@ -785,9 +785,9 @@ router.get('/pmanga', async (req, res, next) => {
  router.get('/pmangareview/:pmangaId/:userId', async (req, res, next) => {
   const pmangaId = req.params.pmangaId
   const userId = req.params.userId
-  var selectReview = 'select sum(rating)/count(memberid) count, '+
-                     '(select memberid from premiummangareview where pmangaId=:pmangaId and memberid=:userId) member, '+
-                     '(select rating from premiummangareview where pmangaId=:pmangaId and memberid=:userId) rating '+
+  var selectReview = 'select sum(rating)/count(id) count, '+
+                     '(select id from premiummangareview where pmangaId=:pmangaId and id=:userId) member, '+
+                     '(select rating from premiummangareview where pmangaId=:pmangaId and id=:userId) rating '+
                      'from premiummangareview where pmangaId=:pmangaId group by pmangaId'
   var ans = await repo.query(selectReview, {
     pmangaId: pmangaId,
@@ -809,7 +809,7 @@ router.get('/pmanga', async (req, res, next) => {
 
   var insertReview  = "declare \n" +
                        "begin \n" +
-                       "insert into premiummangareview(memberid, pmangaId, text, rating, time) values(:userid, :pmangaId, :reviewText, :rating, sysdate);\n" + 
+                       "insert into premiummangareview(id, pmangaId, text, rating, time) values(:userid, :pmangaId, :reviewText, :rating, sysdate);\n" + 
                        "commit; \n" +
                        "end;"
 
