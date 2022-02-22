@@ -50,7 +50,7 @@ router.get('/anime', async (req, res, next) => {
 router.get('/anime/:animeId', async (req, res, next) => {
   //need to fetch the average ratings from the review table...
   const animeId = req.params.animeId
-  var ans = await repo.query('select * from anime where animeid = :animeId', {
+  var ans = await repo.query('select animeid, title, "Release Date", synopsis, p.producerid, p.name from anime a join producer p on(animeid = :animeId and p.producerid=a.producerid)', {
     animeId: animeId
   })
   console.log(ans)
@@ -332,7 +332,7 @@ router.get('/pdf', (req, res) => {
  */
  router.get('/manga/:mangaId', async (req, res, next) => {
   const mangaId = req.params.mangaId
-  var ans = await repo.query('select * from manga where mangaid = :mangaId', {
+  var ans = await repo.query('select mangaid, title, "Release Date", synopsis, b.authorid, b.name from manga a join author b on(mangaid = :mangaId and b.authorid=a.authorid)', {
     mangaId: mangaId
   })
   console.log(ans)
@@ -574,7 +574,7 @@ router.get('/panime', async (req, res, next) => {
  router.get('/panime/:panimeId', async (req, res, next) => {
   //need to fetch the average ratings from the review table...
   const panimeId = req.params.panimeId
-  var ans = await repo.query('select * from premiumanime where panimeid = :panimeId', {
+  var ans = await repo.query('select panimeid, title, "Release Date", synopsis, p.producerid, p.name from premiumanime a join producer p on(panimeid = :panimeId and p.producerid=a.producerid)', {
     panimeId: panimeId
   })
   console.log(ans)
@@ -728,7 +728,7 @@ router.get('/pmanga', async (req, res, next) => {
  */
  router.get('/pmanga/:pmangaId', async (req, res, next) => {
   const pmangaId = req.params.pmangaId
-  var ans = await repo.query('select * from premiummanga where pmangaId = :pmangaId', {
+  var ans = await repo.query('select pmangaid, title, "Release Date", synopsis, b.authorid, b.name from premiummanga a join author b on(pmangaId = :pmangaId and b.authorid=a.authorid)', {
     pmangaId: pmangaId
   })
   console.log(ans)
