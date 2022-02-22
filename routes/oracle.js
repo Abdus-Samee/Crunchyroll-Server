@@ -78,7 +78,13 @@ router.get('/anime/episodes/:animeId', async (req, res, next) => {
   // Ensure there is a range given for the video
   const range = req.headers.range
   // get video stats (about 61MB)
-  const videoPath = "public/videos/" + req.params.animeId + "/" + req.params.episode + ".mp4"
+  var ans = await repo.query('select * from animeepisodes where animeid = :animeId and episode = :episode', {
+    animeId: req.params.animeId,
+    episode: req.params.episode 
+  })
+  console.log(ans)
+
+  const videoPath = ans.data[0].ROOT + req.params.animeId + "/" + ans.data[0].EPISODE + ans.data[0].EXTENSION
   const videoSize = fs.statSync(videoPath).size
   console.log(videoPath)
   console.log(videoSize)
