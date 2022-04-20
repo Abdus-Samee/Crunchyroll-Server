@@ -53,8 +53,8 @@ router.get('/test', async (req, res, next) => {
 router.post('/signup', async (req, res) => {
   const email = req.body.email
   const password = req.body.password
-
-  var transactionQuery =  "declare \n" +
+ 
+  var transactionQuery =  "declare \n" + 
                           "person_id number; \n" +
                           "begin \n" +
                           "insert into person (email, password) values (:email, :password); \n" +

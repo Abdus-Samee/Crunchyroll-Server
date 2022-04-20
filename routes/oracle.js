@@ -555,7 +555,7 @@ router.get('/plan/:memberid', async (req, res, next) => {
 
   res.send({
     reply: ans.data[0]["REP"]
-  })
+  })  
 })
 
 /**
